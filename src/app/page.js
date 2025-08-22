@@ -36,6 +36,18 @@ export default function Home() {
               Start Learning
             </Link>
             <Link
+              href="/dashboard"
+              className="px-8 py-4 bg-purple-600 text-white rounded-xl font-bold shadow-lg hover:bg-purple-700 transition"
+            >
+              See dashboard
+            </Link>
+            <Link
+              href="/admin"
+              className="px-8 py-4 bg-purple-600 text-white rounded-xl font-bold shadow-lg hover:bg-purple-700 transition"
+            >
+              See admin
+            </Link>
+            <Link
               href="/signup"
               className="px-8 py-4 border border-purple-600 text-purple-600 rounded-xl font-bold hover:bg-purple-100 transition"
             >
