@@ -28,7 +28,7 @@ export default function Home() {
             Your friendly companion for learning <strong>DBT skills</strong>.  
             Grow emotional resilience through fun lessons, playful dialogues, and real-time feedback.
           </p>
-          <div className="flex justify-center gap-6 mt-6">
+          <div className="flex justify-center gap-6 mt-6 overflow-x-scroll">
             <Link
               href="/course"
               className="px-8 py-4 bg-purple-600 text-white rounded-xl font-bold shadow-lg hover:bg-purple-700 transition"
