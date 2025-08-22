@@ -1,0 +1,86 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  color: #4b0082;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: all 0.5s ease;
+  z-index: 50;
+  border-radius: 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6b21a8;
+  transition: all 0.5s ease;
+}
+
+.links {
+  display: flex;
+  gap: 1.5rem;
+  transition: all 0.5s ease;
+}
+
+.links a {
+  text-decoration: none;
+  color: #4b0082;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.links a:hover {
+  color: #6b21a8;
+}
+
+.signupBtn {
+  background: #6b21a8;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.signupBtn:hover {
+  background: #4b0082;
+}
+
+/* SCROLLED STATE → small circular black navbar */
+.scrolled {
+  width: 80%;
+  height: 7%;
+  border-radius: 25px;
+  background: black;
+  color: white;
+  padding: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.scrolled .logo,
+.scrolled .links,
+.scrolled .signupBtn {
+  color: white;
+}
+
+.scrolled .links {
+  flex-direction: row;
+  gap: 0.3rem;
+  margin-top: 4px;
+}
+
+.scrolled .signupBtn {
+  padding: 0.3rem 0.6rem;
+  margin-top: 4px;
+}
