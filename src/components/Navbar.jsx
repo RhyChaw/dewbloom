@@ -8,7 +8,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 100); // adjust scroll threshold
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -17,11 +17,11 @@ export default function Navbar() {
   return (
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
       <div className={styles.logo}>DewBloom</div>
-      {/* <div className={styles.links}>
+      <div className={styles.links}>
         <Link href="/course">Course</Link>
-        <Link href="/about">About</Link>
-        <Link href="/contact">Contact</Link>
-      </div> */}
+        <Link href="/dashboard">Dashboard</Link>
+        <Link href="/admin">Admin</Link>
+      </div>
       <Link href="/signup" className={styles.signupBtn}>
         Sign Up
       </Link>
