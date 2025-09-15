@@ -18,9 +18,7 @@ export default function Navbar() {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
       <div className={styles.logo}>DewBloom</div>
       <div className={styles.links}>
-        <Link href="/course">Course</Link>
-        <Link href="/dashboard">Dashboard</Link>
-        <Link href="/admin">Admin</Link>
+        <Link href="/course" className={styles.navBtn}>Course</Link>
       </div>
       <Link href="/signup" className={styles.signupBtn}>
         Sign Up

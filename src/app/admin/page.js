@@ -1,400 +1,222 @@
-// app/admin/page.jsx
 "use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
-import React, { useState } from "react";
+export default function AdminPanel() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [credentials, setCredentials] = useState({ username: "", password: "" });
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState("");
 
-function emptyLesson() {
-  return { id: cryptoRandomId(), title: "New Lesson", durationMinutes: 5, content: "" };
-}
-function emptyModule() {
-  return { id: cryptoRandomId(), title: "New Module", badge: "", lessons: [emptyLesson()] };
-}
-function cryptoRandomId() {
-  // lightweight random id (browser)
-  return Math.random().toString(36).slice(2, 9);
-}
-
-export default function AdminPage() {
-  const [course, setCourse] = useState({
-    courseId: "dewbloom-dbt",
-    title: "New DBT Course",
-    description: "Short course description",
-    slug: "dewbloom-dbt",
-    modules: [emptyModule()],
-    pacing: { biteMinutes: { min: 3, max: 7 } },
-  });
-
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState(null);
-
-  function updateCourse(updater) {
-    setCourse((c) => {
-      const next = typeof updater === "function" ? updater(c) : { ...c, ...updater };
-      return next;
-    });
-  }
-
-  /* Module helpers */
-  function addModule() {
-    updateCourse((c) => ({ ...c, modules: [...c.modules, emptyModule()] }));
-  }
-  function removeModule(modId) {
-    updateCourse((c) => ({ ...c, modules: c.modules.filter((m) => m.id !== modId) }));
-  }
-  function moveModule(modId, dir) {
-    updateCourse((c) => {
-      const modules = [...c.modules];
-      const idx = modules.findIndex((m) => m.id === modId);
-      if (idx === -1) return c;
-      const swap = idx + dir;
-      if (swap < 0 || swap >= modules.length) return c;
-      [modules[idx], modules[swap]] = [modules[swap], modules[idx]];
-      return { ...c, modules };
-    });
-  }
-  function updateModule(modId, patch) {
-    updateCourse((c) => ({
-      ...c,
-      modules: c.modules.map((m) => (m.id === modId ? { ...m, ...patch } : m)),
-    }));
-  }
-
-  /* Lesson helpers */
-  function addLesson(modId) {
-    updateCourse((c) => ({
-      ...c,
-      modules: c.modules.map((m) =>
-        m.id === modId ? { ...m, lessons: [...m.lessons, emptyLesson()] } : m
-      ),
-    }));
-  }
-  function removeLesson(modId, lessonId) {
-    updateCourse((c) => ({
-      ...c,
-      modules: c.modules.map((m) =>
-        m.id === modId ? { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) } : m
-      ),
-    }));
-  }
-  function moveLesson(modId, lessonId, dir) {
-    updateCourse((c) => {
-      const modules = c.modules.map((m) => {
-        if (m.id !== modId) return m;
-        const lessons = [...m.lessons];
-        const idx = lessons.findIndex((l) => l.id === lessonId);
-        if (idx === -1) return m;
-        const swap = idx + dir;
-        if (swap < 0 || swap >= lessons.length) return m;
-        [lessons[idx], lessons[swap]] = [lessons[swap], lessons[idx]];
-        return { ...m, lessons };
-      });
-      return { ...c, modules };
-    });
-  }
-  function updateLesson(modId, lessonId, patch) {
-    updateCourse((c) => ({
-      ...c,
-      modules: c.modules.map((m) =>
-        m.id === modId
-          ? { ...m, lessons: m.lessons.map((l) => (l.id === lessonId ? { ...l, ...patch } : l)) }
-          : m
-      ),
-    }));
-  }
-
-  /* Export JSON */
-  function downloadJSON() {
-    const dataStr = JSON.stringify(course, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${course.slug || course.courseId || "course"}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  /* POST to API (optional) */
-  async function saveToServer() {
-    setSaving(true);
-    setMessage(null);
-    try {
-      const res = await fetch("/api/admin/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(course),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
-      }
-      setMessage({ type: "success", text: "Course saved to server." });
-    } catch (err) {
-      setMessage({ type: "error", text: "Save failed: " + (err.message || err) });
-    } finally {
-      setSaving(false);
+  // Mock users data
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Simulate fetching users from backend
+      const mockUsers = [
+        { id: 1, email: "user1@example.com", name: "Alice Johnson", joinDate: "2024-01-15", status: "active" },
+        { id: 2, email: "user2@example.com", name: "Bob Smith", joinDate: "2024-01-20", status: "active" },
+        { id: 3, email: "user3@example.com", name: "Carol Davis", joinDate: "2024-02-01", status: "pending" },
+        { id: 4, email: "user4@example.com", name: "David Wilson", joinDate: "2024-02-05", status: "active" },
+        { id: 5, email: "user5@example.com", name: "Eva Brown", joinDate: "2024-02-10", status: "suspended" },
+        { id: 6, email: "user6@example.com", name: "Frank Miller", joinDate: "2024-02-15", status: "active" },
+        { id: 7, email: "user7@example.com", name: "Grace Lee", joinDate: "2024-02-20", status: "active" },
+        { id: 8, email: "user8@example.com", name: "Henry Taylor", joinDate: "2024-02-25", status: "pending" }
+      ];
+      setUsers(mockUsers);
     }
-  }
+  }, [isAuthenticated]);
 
-  /* Quick validation */
-  function validateCourse() {
-    if (!course.title || !course.slug) return "Course title and slug are required.";
-    if (!course.modules.length) return "At least one module required.";
-    for (const m of course.modules) {
-      if (!m.title) return "All modules must have a title.";
-      if (!m.lessons.length) return `Module "${m.title}" needs at least one lesson.`;
-      for (const l of m.lessons) {
-        if (!l.title) return `All lessons in "${m.title}" must have a title.`;
-      }
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (credentials.username === "RC" && credentials.password === "123") {
+      setIsAuthenticated(true);
+      setError("");
+    } else {
+      setError("Invalid credentials");
     }
-    return null;
-  }
+  };
 
-  const validationError = validateCourse();
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCredentials({ username: "", password: "" });
+    setUsers([]);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[var(--background)]">
+        <Navbar />
+        <div className="max-w-md mx-auto px-4 py-16">
+          <div className="card-surface p-8">
+            <h1 className="text-3xl font-bold text-black mb-6 text-center">Admin Login</h1>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">Username</label>
+                <input
+                  type="text"
+                  value={credentials.username}
+                  onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">Password</label>
+                <input
+                  type="password"
+                  value={credentials.password}
+                  onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                  required
+                />
+              </div>
+              {error && (
+                <div className="text-red-600 text-sm">{error}</div>
+              )}
+              <button type="submit" className="w-full btn-primary">
+                Login
+              </button>
+            </form>
+            <div className="mt-6 text-center">
+              <Link href="/" className="btn-secondary">
+                ← Back to Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">DewBloom — Admin: Create / Edit Course</h1>
-          <div className="space-x-2">
-            <button
-              onClick={() => {
-                updateCourse({
-                  courseId: cryptoRandomId(),
-                  slug: (course.title || "course").toLowerCase().replace(/\s+/g, "-"),
-                });
-                setMessage({ type: "info", text: "New course ID generated." });
-              }}
-              className="px-3 py-2 rounded-md bg-white border hover:bg-slate-50"
-            >
-              New ID
-            </button>
-            <button
-              onClick={downloadJSON}
-              className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              Export JSON
-            </button>
-            <button
-              disabled={!!validationError || saving}
-              onClick={saveToServer}
-              className="px-3 py-2 rounded-md bg-indigo-600 text-white disabled:opacity-60 hover:bg-indigo-700"
-            >
-              {saving ? "Saving..." : "Save to Server"}
-            </button>
+    <main className="min-h-screen bg-[var(--background)]">
+      <Navbar />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-black">Admin Panel</h1>
+          <button onClick={handleLogout} className="btn-secondary">
+            Logout
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="card-surface p-6">
+            <h3 className="text-sm font-medium text-gray-600">Total Users</h3>
+            <p className="text-3xl font-bold text-black">{users.length}</p>
           </div>
-        </header>
-
-        {message && (
-          <div
-            className={
-              "mb-6 p-3 rounded-md " +
-              (message.type === "error" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800")
-            }
-          >
-            {message.text}
+          <div className="card-surface p-6">
+            <h3 className="text-sm font-medium text-gray-600">Active Users</h3>
+            <p className="text-3xl font-bold text-green-600">
+              {users.filter(u => u.status === "active").length}
+            </p>
           </div>
-        )}
-
-        {/* Course basic details */}
-        <section className="bg-white p-6 rounded-xl shadow mb-6">
-          <h2 className="text-xl font-semibold mb-4">Course Details</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                value={course.title}
-                onChange={(e) => updateCourse({ title: e.target.value })}
-                className="w-full border rounded p-2"
-                placeholder="Course title"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Slug</label>
-              <input
-                value={course.slug}
-                onChange={(e) => updateCourse({ slug: e.target.value })}
-                className="w-full border rounded p-2"
-                placeholder="course-slug"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Course ID</label>
-              <input
-                value={course.courseId}
-                onChange={(e) => updateCourse({ courseId: e.target.value })}
-                className="w-full border rounded p-2"
-              />
-            </div>
+          <div className="card-surface p-6">
+            <h3 className="text-sm font-medium text-gray-600">Pending</h3>
+            <p className="text-3xl font-bold text-yellow-600">
+              {users.filter(u => u.status === "pending").length}
+            </p>
           </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={course.description}
-              onChange={(e) => updateCourse({ description: e.target.value })}
-              className="w-full border rounded p-2 h-24"
-            />
+          <div className="card-surface p-6">
+            <h3 className="text-sm font-medium text-gray-600">Suspended</h3>
+            <p className="text-3xl font-bold text-red-600">
+              {users.filter(u => u.status === "suspended").length}
+            </p>
           </div>
-        </section>
+        </div>
 
-        {/* Modules */}
-        <section className="bg-white p-6 rounded-xl shadow mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Modules</h2>
-            <div className="space-x-2">
-              <button
-                onClick={addModule}
-                className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                + Add Module
-              </button>
-            </div>
+        {/* Users Table */}
+        <div className="card-surface">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-black">User Management</h2>
           </div>
-
-          {course.modules.map((mod, mi) => (
-            <div key={mod.id} className="mb-4 border rounded p-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium mb-1">Module title</label>
-                  <input
-                    value={mod.title}
-                    onChange={(e) => updateModule(mod.id, { title: e.target.value })}
-                    className="w-full border rounded p-2"
-                    placeholder={`Module ${mi + 1}`}
-                  />
-                </div>
-                <div className="w-48">
-                  <label className="block text-sm font-medium mb-1">Badge / Tag</label>
-                  <input
-                    value={mod.badge}
-                    onChange={(e) => updateModule(mod.id, { badge: e.target.value })}
-                    className="w-full border rounded p-2"
-                    placeholder="e.g. Module"
-                  />
-                </div>
-
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={() => moveModule(mod.id, -1)}
-                    className="px-2 py-1 rounded bg-slate-100"
-                    title="Move up"
-                    disabled={mi === 0}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={() => moveModule(mod.id, 1)}
-                    className="px-2 py-1 rounded bg-slate-100"
-                    title="Move down"
-                    disabled={mi === course.modules.length - 1}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    onClick={() => removeModule(mod.id)}
-                    className="px-2 py-1 rounded bg-red-50 text-red-700 border"
-                    title="Remove module"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              {/* Lessons */}
-              <div className="mt-4 pl-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Lessons</h3>
-                  <button
-                    onClick={() => addLesson(mod.id)}
-                    className="px-3 py-1 rounded bg-indigo-600 text-white text-sm"
-                  >
-                    + Add Lesson
-                  </button>
-                </div>
-
-                {mod.lessons.map((lesson, li) => (
-                  <div key={lesson.id} className="mb-3 border rounded p-3 bg-slate-50">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 text-xs text-slate-600">{li + 1}</div>
-                      <div className="flex-1">
-                        <input
-                          value={lesson.title}
-                          onChange={(e) => updateLesson(mod.id, lesson.id, { title: e.target.value })}
-                          className="w-full border rounded p-2 mb-2"
-                          placeholder="Lesson title"
-                        />
-                        <textarea
-                          value={lesson.content}
-                          onChange={(e) => updateLesson(mod.id, lesson.id, { content: e.target.value })}
-                          className="w-full border rounded p-2 h-20"
-                          placeholder="Short lesson content / summary"
-                        />
-                      </div>
-
-                      <div className="w-36 flex flex-col items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={lesson.durationMinutes}
-                          onChange={(e) =>
-                            updateLesson(mod.id, lesson.id, { durationMinutes: Number(e.target.value || 1) })
-                          }
-                          className="w-full border rounded p-2 text-sm"
-                          title="Duration in minutes"
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => moveLesson(mod.id, lesson.id, -1)}
-                            className="px-2 py-1 rounded bg-slate-100"
-                            disabled={li === 0}
-                          >
-                            ↑
-                          </button>
-                          <button
-                            onClick={() => moveLesson(mod.id, lesson.id, 1)}
-                            className="px-2 py-1 rounded bg-slate-100"
-                            disabled={li === mod.lessons.length - 1}
-                          >
-                            ↓
-                          </button>
-                          <button
-                            onClick={() => removeLesson(mod.id, lesson.id)}
-                            className="px-2 py-1 rounded bg-red-50 text-red-700"
-                          >
-                            ✕
-                          </button>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Join Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-purple-600 font-medium">
+                            {user.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-black">{user.name}</div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.joinDate}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.status === 'active' ? 'bg-green-100 text-green-800' :
+                        user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-purple-600 hover:text-purple-900 mr-3">
+                        Edit
+                      </button>
+                      <button className="text-red-600 hover:text-red-900">
+                        Suspend
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* JSON Preview */}
-        <section className="bg-white p-6 rounded-xl shadow mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Course JSON Preview</h2>
-            <div className="text-sm text-slate-500">Validate before export</div>
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          {validationError ? (
-            <div className="mb-4 p-3 text-sm text-red-800 bg-red-50 rounded">{validationError}</div>
-          ) : null}
-
-          <pre className="bg-slate-900 text-slate-100 p-4 rounded overflow-auto text-sm max-h-96">
-            {JSON.stringify(course, null, 2)}
-          </pre>
-        </section>
-
-        <footer className="text-sm text-slate-500">
-          Tip: wire the server route <code>/api/admin/courses</code> to accept POSTed JSON and persist into your database.
-        </footer>
+        {/* Quick Actions */}
+        <div className="mt-8 card-surface p-6">
+          <h3 className="text-lg font-bold text-black mb-4">Quick Actions</h3>
+          <div className="flex flex-wrap gap-4">
+            <button className="btn-primary">
+              Export Users
+            </button>
+            <button className="btn-secondary">
+              Send Newsletter
+            </button>
+            <button className="btn-secondary">
+              View Analytics
+            </button>
+            <button className="btn-secondary">
+              System Settings
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
