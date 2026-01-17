@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String?  @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  progress UserProgress[]
+  streak   Streak?
+
+  @@map("users")
+}
+
+model Module {
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String
+  skillType  String   @map("skill_type") // mindfulness, distress_tolerance, etc.
+  orderIndex Int      @map("order_index")
+
+  lessons Lesson[]
+
+  @@map("modules")
+}
+
+model Lesson {
+  id        String   @id @default(uuid()) @db.Uuid
+  moduleId  String   @map("module_id") @db.Uuid
+  content   Json     @db.JsonB
+  xpReward  Int      @default(0) @map("xp_reward")
+
+  module   Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress UserProgress[]
+
+  @@map("lessons")
+}
+
+model UserProgress {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  lessonId  String   @map("lesson_id") @db.Uuid
+  completed Boolean  @default(false)
+  score     Int?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("user_progress")
+}
+
+model Streak {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @unique @map("user_id") @db.Uuid
+  currentStreak Int       @default(0) @map("current_streak")
+  lastCompleted DateTime? @map("last_completed") @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("streaks")
+}
+
+model Admin {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("admins")
+}
+
+model AdminUser {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("admin_users")
+}
+
+model Course {
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique
+  title     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  chapters  Chapter[]
+  modules   CourseModule[]
+
+  @@map("courses")
+}
+
+model Chapter {
+  id        String   @id @default(uuid()) @db.Uuid
+  courseId  String   @map("course_id") @db.Uuid
+  title     String
+  orderIndex Int      @map("order_index")
+  description String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  modules CourseModule[]
+
+  @@map("chapters")
+}
+
+model CourseModule {
+  id         String     @id @default(uuid()) @db.Uuid
+  courseId   String     @map("course_id") @db.Uuid
+  chapterId String?    @map("chapter_id") @db.Uuid
+  title      String
+  type       ModuleType
+  orderIndex Int        @map("order_index")
+  content    Json       @db.JsonB
+  submodules Json?      @db.JsonB
+  published  Boolean    @default(true)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@map("course_modules")
+}
+
+enum ModuleType {
+  THEORY
+  QUESTION
+}
+
+model AppSettings {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
